@@ -1,39 +1,54 @@
 #!/usr/bin/python3
-#script that reads stdin line by line and computes metrics,
 
 import sys
 
 
-status_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
-cache = {code: 0 for code in status_codes}
+def display_info(status_counts, cumulative_file_size):
+    """
+    Method to print
+    Args:
+        status_counts: dict of status codes
+        cumulative_file_size: total of the file
+    Returns:
+        Nothing
+    """
 
-total_size = 0
-counter = 0
+    print("File size: {}".format(cumulative_file_size))
+    for key, val in sorted(status_counts.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
+
+
+cumulative_file_size = 0
+status_code = 0
+line_counter = 0
+status_counts = {"200": 0,
+                 "301": 0,
+                 "400": 0,
+                 "401": 0,
+                 "403": 0,
+                 "404": 0,
+                 "405": 0,
+                 "500": 0}
 
 try:
     for line in sys.stdin:
-        line_list = line.split(" ")
-        if len(line_list) < 7:
-            continue
-        size = line_list[-1]
-        code = line_list[-2]
-        if code in cache:
-            cache[code] += 1
-            total_size += int(size)
-            counter += 1
+        parsed_line = line.split()  # ✄ trimming
+        parsed_line = parsed_line[::-1]  # inverting
 
-        if counter == 10:
-            print("File size: {}".format(total_size))
-            for code in sorted(cache.keys()):
-                if cache[code] > 0:
-                    print("{}: {}".format(code, cache[code]))
-            counter = 0
+        if len(parsed_line) > 2:
+            line_counter += 1
 
-except KeyboardInterrupt:
-    pass
+            if line_counter <= 10:
+                cumulative_file_size += int(parsed_line[0])  # file size
+                status_code = parsed_line[1]  # status code
+
+                if (status_code in status_counts.keys()):
+                    status_counts[status_code] += 1
+
+            if (line_counter == 10):
+                display_info(status_counts, cumulative_file_size)
+                line_counter = 0
 
 finally:
-    print("File size: {}".format(total_size))
-    for code in sorted(cache.keys()):
-        if cache[code] > 0:
-            print("{}: {}".format(code, cache[code]))
+    display_info(status_counts, cumulative_file_size)
