@@ -111,3 +111,4 @@ n = get_inp()
 get_sols()
 for sol in sols:
     print(sol)
+
